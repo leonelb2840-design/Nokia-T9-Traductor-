@@ -1,0 +1,169 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Traductor T9 oficial de LeonelB_Store. Convierte texto a código Nokia antiguo.">
+    <meta name="author" content="LeonelB2840">
+    <title>Nokia T9 Master - LeonelB_Store</title>
+    <style>
+        body { background-color: #1a1a1a; color: #00ff00; font-family: 'Courier New', Courier, monospace; text-align: center; padding: 20px; }
+        .container { border: 2px solid #333; display: inline-block; padding: 20px; border-radius: 10px; background: #222; max-width: 400px; }
+        textarea { width: 90%; height: 80px; background: #000; color: #00ff00; border: 1px solid #555; padding: 10px; margin-bottom: 5px; border-radius: 5px; outline: none; }
+        .box { margin-bottom: 25px; border-bottom: 1px dashed #444; padding-bottom: 15px; }
+        .box:last-child { border-bottom: none; }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 1.5em; margin-top: 5px; }
+        p { margin: 5px 0; font-size: 0.9em; color: #aaa; }
+        .result-container { margin-top: 10px; background: #111; padding: 10px; border-radius: 5px; min-height: 1.5em; }
+        span { display: block; color: #ffcc00; word-break: break-all; margin-bottom: 10px; min-height: 1.2em; }
+        button { background: #00ff00; color: #000; border: none; padding: 8px 15px; border-radius: 3px; cursor: pointer; font-weight: bold; font-family: 'Courier New'; transition: 0.2s; margin: 2px; }
+        .btn-paste { background: #555; color: #fff; padding: 5px 10px; font-size: 0.8em; margin-bottom: 10px; }
+        .btn-clear { background: #880000; color: #fff; width: 90%; margin-top: 10px; padding: 10px; }
+        /* Clase para el efecto de copiado */
+        .copied { background: #ffffff !important; color: #000 !important; }
+        button:hover { opacity: 0.8; }
+        button:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <pre style="color: #00ff00; font-size: 0.8em; line-height: 1; display: inline-block; text-align: left; margin-top: 15px;">
+   _--_
+  | [##]|
+  |  == |
+  | 123 |
+  | 456 |
+  |_789_|
+        </pre>
+
+        <h1>Nokia T9 Master</h1>
+
+        <div class="box">
+            <p>Escribe texto:</p>
+            <textarea id="inputText" oninput="textToNumbers()" placeholder="Escribe letras..."></textarea>
+            <br>
+            <button class="btn-paste" onclick="pasteToArea('inputText', textToNumbers)">PEGAR TEXTO</button>
+            
+            <div class="result-container">
+                <p style="color: #444; font-size: 0.7em;">RESULTADO:</p>
+                <span id="resultNumbers"></span>
+                <button onclick="copyToClipboard('resultNumbers', event)">COPIAR CÓDIGO</button>
+            </div>
+        </div>
+
+        <div class="box">
+            <p>Escribe números (con espacios):</p>
+            <textarea id="inputNumbers" oninput="numbersToText()" placeholder="Ej: 2 22 222"></textarea>
+            <br>
+            <button class="btn-paste" onclick="pasteToArea('inputNumbers', numbersToText)">PEGAR CÓDIGO</button>
+
+            <div class="result-container">
+                <p style="color: #444; font-size: 0.7em;">MENSAJE:</p>
+                <span id="resultText"></span>
+                <button onclick="copyToClipboard('resultText', event)">COPIAR TEXTO</button>
+            </div>
+        </div>
+
+        <button class="btn-clear" onclick="clearAll()">✖ LIMPIAR TODO</button>
+    </div>
+
+    <script>
+        const t9Map = {
+            'a': '2', 'b': '22', 'c': '222', 'd': '3', 'e': '33', 'f': '333',
+            'g': '4', 'h': '44', 'i': '444', 'j': '5', 'k': '55', 'l': '555',
+            'm': '6', 'n': '66', 'o': '666', 'p': '7', 'q': '77', 'r': '777', 
+            's': '7777', 't': '8', 'u': '88', 'v': '888', 'w': '9', 'x': '99', 
+            'y': '999', 'z': '9999', ' ': '0'
+        };
+
+        const reverseT9Map = {};
+        for (let key in t9Map) { reverseT9Map[t9Map[key]] = key; }
+
+        // Función para el sonido de Nokia
+        function playBeep() {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = context.createOscillator();
+            const gain = context.createGain();
+            osc.type = "square";
+            osc.frequency.setValueAtTime(800, context.currentTime);
+            gain.gain.setValueAtTime(0.1, context.currentTime);
+            osc.connect(gain);
+            gain.connect(context.destination);
+            osc.start();
+            osc.stop(context.currentTime + 0.1);
+        }
+
+        function textToNumbers() {
+            // Mejora: Quita tildes y convierte a minúsculas
+            let input = document.getElementById('inputText').value
+                .toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
+            let encoded = "";
+            for (let char of input) {
+                if (t9Map[char]) encoded += t9Map[char] + " ";
+                else if (char !== "\n") encoded += "? ";
+            }
+            document.getElementById('resultNumbers').innerText = encoded.trim();
+        }
+
+        function numbersToText() {
+            let input = document.getElementById('inputNumbers').value.trim();
+            let codes = input.split(/\s+/);
+            let decoded = "";
+            for (let code of codes) {
+                if (code === "") continue;
+                decoded += (reverseT9Map[code] || "?");
+            }
+            document.getElementById('resultText').innerText = decoded.toUpperCase();
+        }
+
+        function copyToClipboard(id, event) {
+            const text = document.getElementById(id).innerText;
+            if (!text || text === "") return;
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            
+            playBeep(); // Sonido retro
+
+            // Feedback visual en el botón
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "¡COPIADO!";
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('copied');
+            }, 1200);
+        }
+
+        async function pasteToArea(areaId, callback) {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text) {
+                        document.getElementById(areaId).value = text;
+                        callback();
+                        playBeep();
+                    }
+                } else { throw new Error(); }
+            } catch (err) {
+                alert("La App bloquea el pegado automático. Por favor, pega manualmente.");
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('inputText').value = "";
+            document.getElementById('inputNumbers').value = "";
+            document.getElementById('resultNumbers').innerText = "";
+            document.getElementById('resultText').innerText = "";
+            playBeep();
+        }
+    </script>
+</body>
+</html>
