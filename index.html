@@ -165,5 +165,14 @@
             playBeep();
         }
     </script>
+    <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('📱 [Nokia-T9]: Registro exitoso', reg))
+        .catch(err => console.warn('❌ [Nokia-T9]: Falló el registro', err));
+    });
+  }
+    </script>
 </body>
 </html>
