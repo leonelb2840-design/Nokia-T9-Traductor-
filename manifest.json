@@ -1,0 +1,20 @@
+{
+  "short_name": "Nokia Traductor",
+  "name": "Nokia T9 Traductor Master",
+  "icons": [
+    {
+      "src": "./icon-app.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-app.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#000000"
+}
